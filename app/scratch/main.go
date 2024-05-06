@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"log"
+	"math/big"
 )
 
 type Tx struct {
@@ -95,6 +97,24 @@ func run() error {
 	fmt.Println("PUB: " + crypto.PubkeyToAddress(*pubKey1).String())
 
 
+	vv, r , s, err := ToVRSFromHexSignature(hexutil.Encode(sig1))
+	if err != nil {
+		return err
+	}
+	fmt.Println("V|R|S", vv, r, s)
 	return nil
 
+}
+
+func ToVRSFromHexSignature(sigStr string) (v, r, s *big.Int, err error) {
+	sig, err := hex.DecodeString(sigStr[2:])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	r = big.NewInt(0).SetBytes(sig[:32])
+	s = big.NewInt(0).SetBytes(sig[32:64])
+	v = big.NewInt(0).SetBytes([]byte{sig[64]})
+
+	return v, r, s, nil
 }
