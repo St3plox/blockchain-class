@@ -38,7 +38,9 @@ func run() error {
 		return err
 	}
 
-	v := crypto.Keccak256(data)
+	stamp := []byte(fmt.Sprintf("\x19Ardan Signed Message:\n%d", len(data)))
+
+	v := crypto.Keccak256(stamp, data)
 
 	sig, err := crypto.Sign(v, privKey)
 	if err != nil {
@@ -72,7 +74,8 @@ func run() error {
 		return err
 	}
 
-	v1 := crypto.Keccak256(data1)
+	stamp1 := []byte(fmt.Sprintf("\x19Ardan Signed Message:\n%d", len(data1)))
+	v1 := crypto.Keccak256(stamp1, data1)
 
 	sig1, err := crypto.Sign(v1, privKey1)
 	if err != nil {
