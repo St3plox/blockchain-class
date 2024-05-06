@@ -66,7 +66,7 @@ func run() error {
 
 	privKey1, err := crypto.LoadECDSA("zblock/accounts/kennedy.ecdsa")
 	if err != nil {
-		return fmt.Errorf("Unable to load privKey %w", err)
+		return fmt.Errorf("unable to load privKey %w", err)
 	}
 
 	data1, err := json.Marshal(tx1)
