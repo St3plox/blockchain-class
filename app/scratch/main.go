@@ -44,7 +44,17 @@ func run() error{
 	if err != nil {
 		return err
 	}
-	fmt.Println(hexutil.Encode(sig))
+	fmt.Println("SIG: " +  hexutil.Encode(sig))
+
+	//===============================================================
+	//OVER THE WIRE
+
+	pubKey, err := crypto.SigToPub(v, sig)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("PUB: " + crypto.PubkeyToAddress(*pubKey).String())
 
 	return nil
 }
