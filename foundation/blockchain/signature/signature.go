@@ -3,6 +3,7 @@ package signature
 import (
 	"crypto/ecdsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
