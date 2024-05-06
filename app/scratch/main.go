@@ -9,21 +9,21 @@ import (
 )
 
 type Tx struct {
-	FromID  string `json:"from"`     // Ethereum: Account sending the transaction. Will be checked against signature.
-	ToID    string `json:"to"`       // Ethereum: Account receiving the benefit of the transaction.
-	Value   uint64    `json:"value"`    // Ethereum: Monetary value received from this transaction.
+	FromID string `json:"from"`  // Ethereum: Account sending the transaction. Will be checked against signature.
+	ToID   string `json:"to"`    // Ethereum: Account receiving the benefit of the transaction.
+	Value  uint64 `json:"value"` // Ethereum: Monetary value received from this transaction.
 }
 
-func main()  {
+func main() {
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run() error{
+func run() error {
 
 	tx := Tx{
-		FromID: "Soser",
+		FromID: "0xF01813E4B85e178A83e29B8E7bF26BD830a25f32",
 		ToID:   "Sosun",
 		Value:  1000,
 	}
@@ -37,14 +37,14 @@ func run() error{
 	if err != nil {
 		return err
 	}
-	
+
 	v := crypto.Keccak256(data)
 
 	sig, err := crypto.Sign(v, privKey)
 	if err != nil {
 		return err
 	}
-	fmt.Println("SIG: " +  hexutil.Encode(sig))
+	fmt.Println("SIG: " + hexutil.Encode(sig))
 
 	//===============================================================
 	//OVER THE WIRE
@@ -56,5 +56,42 @@ func run() error{
 
 	fmt.Println("PUB: " + crypto.PubkeyToAddress(*pubKey).String())
 
+	tx1 := Tx{
+		FromID: "0xF01813E4B85e178A83e29B8E7bF26BD830a25f32",
+		ToID:   "Bibas",
+		Value:  250,
+	}
+
+	privKey1, err := crypto.LoadECDSA("zblock/accounts/kennedy.ecdsa")
+	if err != nil {
+		return fmt.Errorf("Unable to load privKey %w", err)
+	}
+
+	data1, err := json.Marshal(tx1)
+	if err != nil {
+		return err
+	}
+
+	v1 := crypto.Keccak256(data1)
+
+	sig1, err := crypto.Sign(v1, privKey1)
+	if err != nil {
+		return err
+	}
+	fmt.Println("SIG: " + hexutil.Encode(sig1))
+
+
+	//===============================================================
+	//OVER THE WIRE
+
+	pubKey1, err := crypto.SigToPub(v, sig)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("PUB: " + crypto.PubkeyToAddress(*pubKey1).String())
+
+
 	return nil
+
 }
