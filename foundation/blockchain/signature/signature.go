@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 )
-
 
 const ZeroHash string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 
@@ -70,7 +70,6 @@ func stamp(value any) ([]byte, error) {
 	return data, nil
 }
 
-
 // toSignatureValues converts the signature into the r, s, v values.
 func toSignatureValues(sig []byte) (v, r, s *big.Int) {
 	r = big.NewInt(0).SetBytes(sig[:32])
@@ -78,4 +77,71 @@ func toSignatureValues(sig []byte) (v, r, s *big.Int) {
 	v = big.NewInt(0).SetBytes([]byte{sig[64] + ardanID})
 
 	return v, r, s
+}
+
+func VerifySignature(v *big.Int, r *big.Int, s *big.Int) error {
+
+	// Check the recovery id is either 0 or 1.
+	uintV := v.Uint64() - ardanID
+	if uintV != 0 && uintV != 1 {
+		return errors.New("invalid recovery id")
+	}
+
+	// Check the signature values are valid.
+	if !crypto.ValidateSignatureValues(byte(uintV), r, s, false) {
+		return errors.New("invalid signature values")
+	}
+
+	return nil
+}
+
+// FromAddress extracts the address for the account that signed the data.
+func FromAddress(value any, v, r, s *big.Int) (string, error) {
+
+	// Prepare the data for public key extraction.
+	data, err := stamp(value)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert the [R|S|V] format into the original 65 bytes.
+	sig := ToSignatureBytes(v, r, s)
+
+	// Capture the public key associated with this data and signature.
+	publicKey, err := crypto.SigToPub(data, sig)
+	if err != nil {
+		return "", err
+	}
+
+	// Extract the account address from the public key.
+	return crypto.PubkeyToAddress(*publicKey).String(), nil
+}
+
+// ToSignatureBytes converts the r, s, v values into a slice of bytes
+// with the removal of the ardanID.
+func ToSignatureBytes(v, r, s *big.Int) []byte {
+	sig := make([]byte, crypto.SignatureLength)
+
+	rBytes := make([]byte, 32)
+	r.FillBytes(rBytes)
+	copy(sig, rBytes)
+
+	sBytes := make([]byte, 32)
+	s.FillBytes(sBytes)
+	copy(sig[32:], sBytes)
+
+	sig[64] = byte(v.Uint64() - ardanID)
+
+	return sig
+}
+
+func SignatureString(v, r, s *big.Int) string {
+	return hexutil.Encode(ToSignatureBytesWithArdanID(v, r, s))
+}
+
+func ToSignatureBytesWithArdanID(v, r, s *big.Int) []byte {
+	sig := ToSignatureBytes(v, r, s)
+	sig[64] = byte(v.Uint64())
+
+	return sig
 }
