@@ -2,6 +2,7 @@ package signature
 
 import (
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,16 @@ const ZeroHash string = "0x00000000000000000000000000000000000000000000000000000
 // clear that the signature comes from the Ardan blockchain.
 // Ethereum and Bitcoin do this as well, but they use the value of 27.
 const ardanID = 29
+
+func Hash(value any) string {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return ZeroHash
+	}
+
+	hash := sha256.Sum256(data)
+	return hexutil.Encode(hash[:])
+}
 
 func Sign(value any, privateKey *ecdsa.PrivateKey) (v, r, s *big.Int, err error) {
 
